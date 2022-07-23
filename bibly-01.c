@@ -37,7 +37,7 @@ char *strrus(char *s) {
 
 int main() {
 
-	ezxml_t bible = ezxml_parse_file("kjv.xml"),book,chap,vers;
+	ezxml_t bible = ezxml_parse_file("adb.xml"),book,chap,vers;
 
 	const char *bname;
 	const char *cnum;
