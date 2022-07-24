@@ -5,7 +5,7 @@
 #include "ezxml.h"
 
 
-char *strrus(char *s) {
+char *strchg(char *s) {
 
 	char num[256]="",nam[256]="";
 
@@ -26,18 +26,13 @@ char *strrus(char *s) {
 		sprintf(s,"%s %s",num,nam);
 	}
 
-	char *p=s;
-	while(*p) {
-		if(*p==' ') *p='_';
-		p++;
-	}
 	return s;
 }
 
 
 int main() {
 
-	ezxml_t bible = ezxml_parse_file("adb.xml"),book,chap,vers;
+	ezxml_t bible = ezxml_parse_file("bible/bbe.xml"),book,chap,vers;
 
 	const char *bname;
 	const char *cnum;
@@ -59,7 +54,13 @@ int main() {
 				text=ezxml_txt(vers);
 
 
-				printf("%s|%s|%s|%s\n",bname,cnum,vnum,text);
+				char bname2[32];
+
+				strcpy(bname2,bname);
+
+				strchg(bname2);
+				
+				printf("%s|%s|%s|%s\n",bname2,cnum,vnum,text);
 
 
 			}
