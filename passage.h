@@ -112,7 +112,7 @@ Vector *Passage_SearchText(Vector *passages,char *pattern) {
 
 		Passage *passage=Vector_Get(passages,i);
 	
-		if(strmatch(passage->text,pattern,strlen(passage->text),strlen(pattern))) {	
+		if(strcasestr(passage->text,pattern) || strmatch(passage->text,pattern,strlen(passage->text),strlen(pattern))) {	
 
 			Vector_Append(foundPassages,passage);		
 		}

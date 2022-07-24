@@ -28,7 +28,7 @@
 
 
 
-int main() {
+int main(int argc,char **argv) {
 
 	FILE *fp;
 
@@ -37,13 +37,17 @@ int main() {
 	char **toks=NULL;
 	int ntoks=0;
 
+	if(argc<2) {
+		return 1;
+	}
+
 	srand(time(NULL));
 
 	Vector *passages=Vector_New(0,Passage_Print,Passage_Free);
 
 	Passage *passage=NULL;
 
-	fp=fopen("kjv.vpl","rt");
+	fp=fopen(argv[1],"rt");
 
 	while(fgets(line,LINE_MAX,fp)) {
 
@@ -68,19 +72,14 @@ int main() {
 
 //	Passage_Print(0,Passage_SearchVerse(passages,"Psalm",83,18));
 
-
-/*
-	Vector *searchPassages=Passage_SearchText(passages,"*jesus*");
+	Vector *searchPassages=Passage_SearchText(passages,argv[2]);
 
 	Vector_Print(0,searchPassages);
 
-	printf("Found %zu\n\n",Vector_Length(searchPassages));
+	printf("Found %zu Occurrences\n\n",Vector_Length(searchPassages));
 
 
-*/
-
-
-	Passage_SearchRandom(passages);
+//	Passage_SearchRandom(passages);
 	
 	Vector_Free(passages);
 
