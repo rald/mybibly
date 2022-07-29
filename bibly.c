@@ -84,14 +84,16 @@ int main(int argc,char **argv) {
 
 	Vector_Free(passages);
 
-//*/
 
-
-
-	Vector *bInfos=BInfo_Load("kjv.vpl");
 
 	Vector_Print(0,bInfos);
 
+//*/
+
+//	Vector *bInfos=BInfo_LoadVPL("kjv.vpl");
+	Vector *bInfos=BInfo_LoadInfo("kjv.inf");
+	
+	Vector_Print(0,bInfos);
 
 	return 0;
 }

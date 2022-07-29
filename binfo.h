@@ -23,8 +23,8 @@ struct BInfo {
 BInfo *BInfo_New();
 void BInfo_Free(void *bInfo);
 void BInfo_Print(int num,void *data);
-Vector *BInfo_Load(char *filename);
-
+Vector *BInfo_LoadVPL(char *filename);
+Vector *BInfo_LoadInfo(char *filename);
 
 void String_Print(int num,void *data);
 void String_Free(void *data);
@@ -34,6 +34,8 @@ void Int_Free(void *data);
 
 int *Int_Wrap(int data);
 int Int_Unwrap(int *data);
+
+
 
 
 
@@ -106,13 +108,15 @@ void BInfo_Free(void *bInfo) {
 
 void BInfo_Print(int num,void *data) {
 	printf("%s|",((BInfo*)data)->bname);	
-	printf("%d|",((BInfo*)data)->nchaps);	
+	Vector_Print(0,((BInfo*)data)->bsnames);
+	printf("|%d|",((BInfo*)data)->nchaps);	
 	Vector_Print(0,((BInfo*)data)->nverses);
+	printf("\n");
 }
 
 
 
-Vector *BInfo_Load(char *filename) {
+Vector *BInfo_LoadVPL(char *filename) {
 
 	Vector *bInfos=Vector_New(0,BInfo_Print,BInfo_Free);
 	FILE *fin=NULL;
@@ -124,7 +128,6 @@ Vector *BInfo_Load(char *filename) {
 	char *bname=NULL;
 	int cnum=0;	
 	int vnum=0;
-	char *text;
 
 	char *pbname=NULL;
 	int pcnum=0;
@@ -152,7 +155,6 @@ Vector *BInfo_Load(char *filename) {
 					bname=toks[0];
 					cnum=atoi(toks[1]);
 					vnum=atoi(toks[2]);
-					text=toks[3];
 
 					//printf("%s %d:%d -> %s\n\n",bname,cnum,vnum,text);
 
@@ -201,6 +203,75 @@ Vector *BInfo_Load(char *filename) {
 	
 	return bInfos;
 }
+
+
+
+Vector *BInfo_LoadInfo(char *filename) {
+
+	Vector *bInfos=Vector_New(0,BInfo_Print,BInfo_Free);
+	FILE *fin=NULL;
+	char line[STRING_MAX];
+
+	char **toks[3];
+	int ntoks[3];
+
+
+	for(int i=0;i<3;i++) {
+		toks[i]=NULL;
+		ntoks[i]=0;
+	}
+	
+
+	if(bInfos) {
+
+		if((fin=fopen(filename,"rt"))==NULL) {
+
+			Vector_Free(bInfos);
+			bInfos=NULL;
+			
+		} else {
+
+	
+			while(fgets(line,STRING_MAX-2,fin)!=NULL) {
+
+				mystrrnl(line);
+								
+				if(mystrtok(line,"|",3,&toks[0],&ntoks[0])==4) {
+					BInfo *bInfo=BInfo_New();
+
+					bInfo->bname=strdup(toks[0][0]);
+
+					mystrtok(toks[0][1],",",-1,&toks[1],&ntoks[1]);
+					
+					for(int i=0;i<ntoks[1];i++) {
+						Vector_Append(bInfo->bsnames,strdup(toks[1][i]));
+					}
+
+					bInfo->nchaps=atoi(toks[0][2]);
+
+					mystrtok(toks[0][3],",",-1,&toks[2],&ntoks[2]);
+					
+					for(int i=0;i<ntoks[2];i++) {
+						Vector_Append(bInfo->nverses,Int_Wrap(atoi(toks[2][i])));						
+					}
+
+					Vector_Append(bInfos,bInfo);
+
+				}
+
+				for(int i=0;i<3;i++) {
+					mytokfree(&toks[i],&ntoks[i]);
+				}
+
+			}			
+		}
+	}
+
+	return bInfos;
+
+}
+
+
 
 
 #endif /* BINFO_IMPLEMENTATION */

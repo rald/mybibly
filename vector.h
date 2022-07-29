@@ -114,7 +114,6 @@ void Vector_Print(int num,Vector *vector) {
   for(size_t i=0;i<vector->length;i++) {
     vector->print(i+1,vector->data[i]);
   }
-  printf("\n");
 }
 
 void Vector_PrintData(void *vector) {
