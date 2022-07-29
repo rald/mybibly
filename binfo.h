@@ -109,8 +109,8 @@ void BInfo_Free(void *bInfo) {
 void BInfo_Print(int num,void *data) {
 	printf("%s|",((BInfo*)data)->bname);	
 	Vector_Print(0,((BInfo*)data)->bsnames);
-	printf("|%d|",((BInfo*)data)->nchaps);	
-	Vector_Print(0,((BInfo*)data)->nverses);
+//	printf("|%d|",((BInfo*)data)->nchaps);	
+//	Vector_Print(0,((BInfo*)data)->nverses);
 	printf("\n");
 }
 
