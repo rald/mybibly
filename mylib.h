@@ -15,18 +15,20 @@
 #define FREE(x) free((x))
 
 
-bool strmatch(char str[], char pattern[], int n, int m);
 
+bool strmatch(char str[], char pattern[], int n, int m);
 
 char *mytrim(char *s);
 char *mystrsub(char *s,int b,int l);
 char *myskip(char *s,char *d);
 
-
-
 void mytokadd(char ***t,int *l,char *s);
 void mytokfree(char ***toks,int *ntoks);
 int mystrtok(char *s,char *d,int n,char ***t,int *l);
+char *mystrupr(char *s);
+char *mystrlwr(char *s);
+
+char *mystrrnl(char *s);
 
 
 
@@ -91,12 +93,12 @@ bool strmatch(char str[], char pattern[], int n, int m)
 
 
 char *mytrim(char *s) {
-    char *p,*q;
-    p=s; q=s;
-    while(isspace(*q)) ++q;
-    while(*q) *p++ = *q++;
-    *p=0;
-    while(p>s && isspace(*--p)) *p=0;
+	char *p,*q;
+	p=s; q=s;
+	while(isspace(*q)) ++q;
+	while(*q) *p++ = *q++;
+	*p=0;
+	while(p>s && isspace(*--p)) *p=0;
 	return s;
 }
 
@@ -150,11 +152,11 @@ void mytokfree(char ***toks,int *ntoks) {
 	i=0;
 	while(i<(*ntoks)) {
 		free((*toks)[i]);
-		(*toks)[i]=0;
+		(*toks)[i]=NULL;
 		i++;
 	}
 	free(*toks);
-	(*toks)=0;
+	(*toks)=NULL;
 	(*ntoks)=0;
 }
 
@@ -180,6 +182,36 @@ int mystrtok(char *s,char *d,int n,char ***t,int *l) {
 	}
 		
 	return *l;
+}
+
+
+
+char *mystrupr(char *s) {
+	char *p=s;
+	while(*p) {
+		*p=toupper(*p);
+		p++;
+	}
+	return s;
+}
+
+
+
+char *mystrlwr(char *s) {
+	char *p=s;
+	while(*p) {
+		*p=tolower(*p);
+		p++;
+	}
+	return s;
+}
+
+
+
+char *mystrrnl(char *s) {
+	char *p=strchr(s,'\n');
+	if(p) *p='\0';
+	return s;	
 }
 
 

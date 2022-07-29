@@ -22,8 +22,6 @@
 #define CITE_IMPLEMENTATION
 #include "cite.h"
 
-#define BINFO_IMPLEMENTATION
-#include "binfo.h"
 
 
 #define LINE_MAX 1024
@@ -71,26 +69,23 @@ int main(int argc,char **argv) {
 
 	}
 
-//	Passage_SearchRandom(passages);
 
 //	Passage_Print(0,Passage_SearchVerse(passages,"Romans",10,13));
 
-/*
+
+//*
 	Vector *searchPassages=Passage_SearchText(passages,argv[2]);
 
 	Vector_Print(0,searchPassages);
 
 	printf("Found %zu Occurrences\n\n",Vector_Length(searchPassages));
 
+	Passage_SearchRandom(passages);
+	
 	Vector_Free(passages);
 
+
 //*/
-
-
-
-	Vector *bInfos=BInfo_Load("kjv.vpl");
-
-	Vector_Print(0,bInfos);
 
 
 	return 0;

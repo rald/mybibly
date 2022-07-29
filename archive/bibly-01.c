@@ -32,7 +32,7 @@ char *strchg(char *s) {
 
 int main() {
 
-	ezxml_t bible = ezxml_parse_file("bbe.xml"),book,chap,vers;
+	ezxml_t bible = ezxml_parse_file("bible/bbe.xml"),book,chap,vers;
 
 	const char *bname;
 	const char *cnum;

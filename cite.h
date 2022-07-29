@@ -13,7 +13,7 @@
 typedef struct Cite Cite;
 
 struct Cite {
-	char *book;
+	char *bname;
 	Range *chaps;
 	Vector *verses;
 	char *text;
@@ -21,32 +21,47 @@ struct Cite {
 
 
 
-
 #ifdef CITE_IMPLEMETATION
 
 
 
-Cite *Cite_New() {
+Cite *Cite_New(char *bname,Range *chaps,Vector *verses) {
 	Cite *cite=NEW1(cite);
 	if(cite) {
-		cite->book=book;
+		cite->bname=strdup(bname);
 		cite->chap=chaps;
-		cite->verses=Vector_Create(0,Cite_Print,Cite_Free);
+		cite->verses=verses;
 	}
 	return cite;
 }
-	
 
-void Cite_Free(Cite **cite) {
-	free((*cite)->book);
-	(*cite)->book=NULL;
 
-	Range_Free((*cite)->chaps);
 
-	Vector_Free((*cite)->verses);
+void Cite_Free(void *cite) {
+
+	free(((Cite*)cite)->book);
+	((Cite*)cite)->book=NULL;
+
+	Range_Free((Cite*)cite)->chaps);
+	(Cite*)cite)->chaps=NULL;
+
+	Vector_Free((Cite*)cite)->verses);
+	(Cite*)cite)->verses=NULL;
+
+	free(cite);
 }
+
+
+void Cite_Parse(char *str,Cite ***cites,int *ncites) {
+	
+}
+
 
 
 #endif /* CITE_IMPLEMETATION */
 
-#endif /* CITE */
+
+
+#endif /* CITE_H */
+
+
