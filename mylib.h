@@ -13,7 +13,7 @@
 #define NEW0(x,y) calloc(y,sizeof(*(x)))
 #define NEW1(x) malloc(sizeof(*(x)))
 #define NEW2(x,y) malloc(sizeof(*(x))*(y))
-#define FREE(x) free((x))
+#define FREE0(x) free((x))
 
 
 

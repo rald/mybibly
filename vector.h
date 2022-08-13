@@ -1,6 +1,9 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+#define INT_IMPLEMENTATION
+#include "int.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -17,11 +20,11 @@ struct Vector {
   void **data;
   size_t capacity;
   size_t length;
-  Vector_PrintDataCallback *print; 
-  Vector_FreeDataCallback *Free; 
+  Vector_PrintDataCallback *printData; 
+  Vector_FreeDataCallback *freeData; 
 }; 
 
-Vector *Vector_New(size_t capacity,Vector_PrintDataCallback *print,Vector_FreeDataCallback *Free);
+Vector *Vector_New(size_t capacity,Vector_PrintDataCallback *printData,Vector_FreeDataCallback *freeData);
 void Vector_Free(void *vector);
 void Vector_Set(Vector *vector,size_t index,void *value);
 void *Vector_Get(Vector *vector,size_t index);
@@ -39,29 +42,29 @@ void Vector_PrintData(void *vector);
 
 
 
-Vector *Vector_New(size_t capacity,Vector_PrintDataCallback *print,Vector_FreeDataCallback *Free) {
+Vector *Vector_New(size_t capacity,Vector_PrintDataCallback *printData,Vector_FreeDataCallback *freeData) {
   Vector *vector=malloc(sizeof(*vector));
   if(vector!=NULL) {
     vector->data=malloc(sizeof(*(vector->data))*capacity);
     vector->capacity=capacity;
     vector->length=0;
-    vector->print=print;
-    vector->Free=Free;
+    vector->printData=printData;
+    vector->freeData=freeData;
   }
   return vector;
 }
 
 void Vector_Free(void *vector) {
 
-  for(size_t i=0;i<((Vector*)vector)->length;i++) {
-    ((Vector*)vector)->Free(((Vector*)vector)->data[i]);
+  for(size_t i=0;i<Vector_Length(vector);i++) {
+    ((Vector*)vector)->freeData(((Vector*)vector)->data[i]);
   }
   free(((Vector*)vector)->data);
   free(vector);
 }
 
 void Vector_Set(Vector *vector,size_t index,void *value) {
-  vector->Free(vector->data[index]);
+  vector->freeData(vector->data[index]);
   vector->data[index]=value;
 }
 
@@ -82,7 +85,7 @@ void Vector_Prepend(Vector *vector,void *value) {
     vector->capacity++;
     vector->data=realloc(vector->data,sizeof(vector->data)*(vector->capacity));
   }
-  for(size_t i=vector->length;i>0;i--) {
+  for(size_t i=Vector_Length(vector);i>0;i--) {
     vector->data[i]=vector->data[i-1];
   }
   vector->data[0]=value;
@@ -96,36 +99,36 @@ void Vector_Insert(Vector *vector,size_t index,void *value) {
     vector->data=realloc(vector->data,sizeof(*(vector->data))*vector->capacity);
   }
   vector->length++;
-  for(size_t i=vector->length-1;i>index;i--) {
+  for(size_t i=Vector_Length(vector)-1;i>index;i--) {
     vector->data[i]=vector->data[i-1];
   }
   vector->data[index]=value;
 }
 
 void Vector_Remove(Vector *vector,size_t index) {
-  vector->Free(vector->data[index]);
-  for(size_t i=index;i<vector->length-1;i++) {
+  vector->freeData(vector->data[index]);
+  for(size_t i=index;i<Vector_Length(vector)-1;i++) {
     vector->data[i]=vector->data[i+1];
   }
   vector->length--;  
 }
 
 void Vector_Print(int num,Vector *vector) {
-  for(size_t i=0;i<vector->length;i++) {
-    vector->print(i+1,vector->data[i]);
+  for(size_t i=0;i<Vector_Length(vector);i++) {
+    vector->printData(i+1,vector->data[i]);
   }
 }
 
 void Vector_PrintData(void *vector) {
-  for(size_t i=0;i<((Vector*)vector)->length;i++) {
-    ((Vector*)vector)->print(i+1,((Vector*)vector)->data[i]);
+  for(size_t i=0;i<Vector_Length(vector);i++) {
+    ((Vector*)vector)->printData(i+1,((Vector*)vector)->data[i]);
   }
   printf("\n");
 }
 
 void Vector_FreeData(void *vector) {
-  for(size_t i=0;i<((Vector*)vector)->length;i++) {
-    ((Vector*)vector)->Free(((Vector*)vector)->data[i]);
+  for(size_t i=0;i<Vector_Length(vector);i++) {
+    ((Vector*)vector)->freeData(((Vector*)vector)->data[i]);
     ((Vector*)vector)->data[i]=NULL;
   }
   free(((Vector*)vector)->data);
@@ -139,3 +142,6 @@ void Vector_FreeData(void *vector) {
 
 
 #endif /* VECTOR_H  */
+
+
+

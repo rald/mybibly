@@ -10,8 +10,10 @@ int main(int argc,char **argv) {
 	char line[STRING_MAX];
 	char word[STRING_MAX];
 
-	char **toks[2];
-	int ntoks[2];
+	char **toks=NULL;
+	int ntoks=0;
+
+	char *p;
 
 	if(argc<2) {
 		printf("Syntax: %s filename\n",argv[0]);
@@ -23,20 +25,25 @@ int main(int argc,char **argv) {
 		return 2;
 	}
 
-
-	toks[0]=toks[1]=NULL;
-	ntoks[0]=ntoks[1]=0;
-
 	while(fgets(line,STRING_MAX-2,fin)) {
 		mystrrnl(line);
-		if(mystrtok(line,"|",3,&toks[0],&ntoks[0])==4) {
-			mystrtok(toks[0][2]," ",3,&toks[1],&ntoks[1]);
-			for(int i=0;i<ntoks[1];i++) {
-				printf("%s\n",toks[1][i]);
+		int i=0;
+		while(i<strlen(line)) {
+			if(isalnum(line[i])) {
+				while(isalnum(line[i]) || line[i]=='\'') {
+					putchar(line[i]);
+					i++;
+				}
+				putchar('\n');
+			} else if(isspace(line[i])) {
+				while(isspace(line[i])) i++;
+			} else {
+				putchar(line[i]);
+				putchar('\n');
+				i++;
 			}
-			mytokfree(&toks[1],&ntoks[1]);
 		}
-		mytokfree(&toks[0],&ntoks[0]);
+		mytokfree(&toks,&ntoks);
 	}
 
 	return 0;

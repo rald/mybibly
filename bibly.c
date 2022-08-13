@@ -1,32 +1,24 @@
 #define _GNU_SOURCE
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <ctype.h>
-#include <time.h>
 
-
+#define COMMON_IMPLEMENTATION
+#include "common.h"
 
 #define MYLIB_IMPLEMENTATION
 #include "mylib.h"
 
-#define VECTOR_IMPLEMENTATION
-#include "vector.h"
-
 #define PASSAGE_IMPLEMENTATION
 #include "passage.h"
 
-#define CITE_IMPLEMENTATION
-#include "cite.h"
+#define TOKEN_IMPLEMENTATION
+#include "token.h"
 
-#define BINFO_IMPLEMENTATION
-#include "binfo.h"
+#define LEXER_IMPLEMENTATION
+#include "lexer.h"
 
-
-#define LINE_MAX 1024
+#define PARSER_IMPLEMENTATION
+#include "parser.h"
 
 
 
@@ -34,30 +26,40 @@ int main(int argc,char **argv) {
 
 	FILE *fp;
 
-	char line[LINE_MAX];
+	char line[STRING_MAX];
 
-	char **toks=NULL;
-	int ntoks=0;
+	Token **tokens=NULL;
+	size_t ntokens=0;
+
+	Passage **passages=NULL;
+	size_t npassages=0;
+	
+	Passage *passage=NULL;
+
+  char **toks=NULL;
+  size_t ntoks=0;
+
+  Cite **cites;
+  size_t ncites=0;  
+
 
 	if(argc<2) {
+    printf("Syntax: %s filename.vpl ...\n",argv[0]);
 		return 1;
 	}
 
+
+
 	srand(time(NULL));
-
-	Vector *passages=Vector_New(0,Passage_Print,Passage_Free);
-
-	Passage *passage=NULL;
 
 	fp=fopen(argv[1],"rt");
 
-	while(fgets(line,LINE_MAX,fp)) {
+	while(fgets(line,STRING_MAX-2,fp)) {
 
 		char *p=strchr(line,'\n');
 		if(p) *p='\0';
 			
-		if(mystrtok(line,"|",3,&toks,&ntoks)==4) {	
-
+		if(String_Strtok(line,"|",3,&toks,&ntoks)==4) {
 			passage=Passage_New(
 				toks[0],
 				atoi(toks[1]),
@@ -65,35 +67,44 @@ int main(int argc,char **argv) {
 				toks[3]
 			);
 
-			Vector_Append(passages,passage);
-			mytokfree(&toks,&ntoks);
+			Passage_Append(&passages,&npassages,passage);
+
+			Token_Free(toks);
+			toks=NULL;
 		}
 
 	}
 
-//	Passage_SearchRandom(passages);
-
-//	Passage_Print(0,Passage_SearchVerse(passages,"Romans",10,13));
-
-/*
-	Vector *searchPassages=Passage_SearchText(passages,argv[2]);
-
-	Vector_Print(0,searchPassages);
-
-	printf("Found %zu Occurrences\n\n",Vector_Length(searchPassages));
-
-	Vector_Free(passages);
 
 
+  Lexer_Lex(
 
-	Vector_Print(0,bInfos);
+"1 Song of Solomon 2-3\n"
+"1 John 2\n"
+"1 John 2-3\n"
+"1 John 2:3\n"
+"1 John 3:3-4\n"
+"1 John 3:3-4,5\n"
+"1 John 3:3-4,5,6\n"
+"1 John 3:3-4,5-6\n"
+"1 John 3:3-4,5-6,7\n"
+"1 John 3:3-4,5,6-7\n"
+"1 John 3:3-4,5:6-7"
 
-//*/
+,&tokens,&ntokens);
 
-//	Vector *bInfos=BInfo_LoadVPL("kjv.vpl");
-	Vector *bInfos=BInfo_LoadInfo("kjv.inf");
-	
-	Vector_Print(0,bInfos);
+
+
+
+  Tokens_Print(tokens,ntokens);
+
+  Parser_Parse(tokens,ntokens,&cites,&ncites);  
+  for(size_t i=0;i<ntokens;i++) {
+    Token_Free(tokens[i]);
+    tokens[i]=NULL;
+  }
+  
+
 
 	return 0;
 }

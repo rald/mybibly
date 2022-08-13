@@ -3,15 +3,8 @@
 
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-
-
-
-#define VECTOR_IMPLEMENtATION
-#include "vector.h"
+#define COMMON_IMPLEMENTATION
+#include "common.h"
 
 
 
@@ -19,19 +12,27 @@ typedef struct Passage Passage;
 
 struct Passage {
 	char *bname;
-	int cnum;
-	int vnum;
+	size_t cnum;
+	size_t vnum;
 	char *text;
 };
 
 
 
 Passage *Passage_New(char *book,int cnum,int vnum,char *text);
+
 void Passage_Free(void *passage);
+
+void Passage_Append(Passage ***passages,size_t *npassages,Passage *passage);
+
 void Passage_Print(int num,void *passage);
-Passage *Passage_SearchVerse(Vector *passages,char *bname,int cnum,int vnum);
-Vector *Passage_SearchText(Vector *passages,char *pattern);
-void Passage_SearchRandom(Vector *passages);
+
+Passage *Passage_SearchVerse(Passage **passages,size_t npassages,char *bname,size_t cnum,size_t vnum);
+
+Passage *Passage_SearchRandom(Passage **passages,size_t npassages);
+
+int Passage_SearchText(Passage **passages,size_t npassages,Passage ***fpassages,size_t *nfpassages,char *pattern);
+
 
 
 #ifdef PASSAGE_IMPLEMENTATION
@@ -59,13 +60,20 @@ void Passage_Free(void *passage) {
 
 
 
+void Passage_Append(Passage ***passages,size_t *npassages,Passage *passage) {
+  (*passages)=realloc(*passages,sizeof(*passages)*((*npassages)+1));
+  (*passages)[(*npassages)++]=passage;
+}
+
+
+
 void Passage_Print(int num,void *passage) {
 
 	Passage *p=(Passage*)passage;
 
 	if(num==0) {
 
-		printf("%s %d:%d -> %s\n\n",
+		printf("%s %zu:%zu -> %s\n\n",
 			p->bname,
 			p->cnum,
 			p->vnum,
@@ -74,7 +82,7 @@ void Passage_Print(int num,void *passage) {
 
 	} else {
 	
-		printf("(%d) %s %d:%d -> %s\n\n",
+		printf("(%d) %s %zu:%zu -> %s\n\n",
 			num,
 			p->bname,
 			p->cnum,
@@ -87,15 +95,13 @@ void Passage_Print(int num,void *passage) {
 
 
 
-Passage *Passage_SearchVerse(Vector *passages,char *bname,int cnum,int vnum) {
+Passage *Passage_SearchVerse(Passage **passages,size_t npassages,char *bname,size_t cnum,size_t vnum) {
 
-	for(int i=0;i<Vector_Length(passages);i++) {
+	for(size_t i=0;i<npassages;i++) {
 
-		Passage *passage=Vector_Get(passages,i);
-	
-		if(!strcasecmp(bname,passage->bname) && cnum==passage->cnum && vnum==passage->vnum) {	
+		if(!strcasecmp(bname,passages[i]->bname) && cnum==passages[i]->cnum && vnum==passages[i]->vnum) {	
 
-			return passage;		
+			return passages[i];		
 		}
 	}
 
@@ -104,28 +110,23 @@ Passage *Passage_SearchVerse(Vector *passages,char *bname,int cnum,int vnum) {
 
 
 
-Vector *Passage_SearchText(Vector *passages,char *pattern) {
+int Passage_SearchText(Passage **passages,size_t npassages,Passage ***fpassages,size_t *nfpassages,char *pattern) {
 
-	Vector *foundPassages=Vector_New(0,Passage_Print,Passage_Free);
-
-	for(int i=0;i<Vector_Length(passages);i++) {
-
-		Passage *passage=Vector_Get(passages,i);
-	
-		if(strcasestr(passage->text,pattern) || strmatch(passage->text,pattern,strlen(passage->text),strlen(pattern))) {	
-
-			Vector_Append(foundPassages,passage);		
+	for(size_t i=0;i<npassages;i++) {
+		if(strcasestr(passages[i]->text,pattern) || strmatch(passages[i]->text,pattern,strlen(passages[i]->text),strlen(pattern))) {	
+			Passage_Append(fpassages,nfpassages,passages[i]);		
 		}
 	}
 
-	return foundPassages;
+	return *nfpassages;
 }
 
 
 
-void Passage_SearchRandom(Vector *passages) {
-	Passage_Print(0,Vector_Get(passages,rand()%Vector_Length(passages)));
+Passage *Passage_SearchRandom(Passage **passages,size_t npassages) {
+	return passages[rand()%npassages];
 }
+
 
 
 #endif /* PASSAGE_IMPLEMENTATION */

@@ -7,6 +7,8 @@
 #define MYLIB_IMPLEMENTATION
 #include "mylib.h"
 
+#define STRING_IMPLEMENTATION
+#include "string.h"
 
 
 typedef struct BInfo BInfo;
@@ -26,9 +28,6 @@ void BInfo_Print(int num,void *data);
 Vector *BInfo_LoadVPL(char *filename);
 Vector *BInfo_LoadInfo(char *filename);
 
-void String_Print(int num,void *data);
-void String_Free(void *data);
-
 void Int_Print(int num,void *data);
 void Int_Free(void *data);
 
@@ -43,35 +42,6 @@ int Int_Unwrap(int *data);
 
 
 
-void String_Print(int num,void *data) {
-	if(num!=1) printf(",");
-	printf("%s",(char*)data);	
-}
-
-void String_Free(void *data) {
-	free(data);	
-}
-
-
-
-void Int_Print(int num,void *data) {
-	if(num!=1) printf(",");
-	printf("%d",*(int*)data);
-}
-
-void Int_Free(void *data) {
-	free(data);	
-}
-
-int *Int_Wrap(int data) {
-	int *result=malloc(sizeof(*result));
-	*result=data;
-	return result;	
-}
-
-int Int_Unwrap(int *data) {
-	return *data;	
-}
 
 
 
@@ -212,12 +182,11 @@ Vector *BInfo_LoadInfo(char *filename) {
 	FILE *fin=NULL;
 	char line[STRING_MAX];
 
-	char **toks[3];
-	int ntoks[3];
+	Vector *toks[3]=NULL;
 
 
 	for(int i=0;i<3;i++) {
-		toks[i]=NULL;
+		toks[i]=Vector_New(0,String_Print,String_Free);
 		ntoks[i]=0;
 	}
 	
@@ -234,9 +203,9 @@ Vector *BInfo_LoadInfo(char *filename) {
 	
 			while(fgets(line,STRING_MAX-2,fin)!=NULL) {
 
-				mystrrnl(line);
+				String_Strrnl(line);
 								
-				if(mystrtok(line,"|",3,&toks[0],&ntoks[0])==4) {
+				if(String_Strtok(line,"|",3,toks)==4) {
 					BInfo *bInfo=BInfo_New();
 
 					bInfo->bname=strdup(toks[0][0]);
@@ -269,6 +238,56 @@ Vector *BInfo_LoadInfo(char *filename) {
 
 	return bInfos;
 
+}
+
+
+
+Vector binfo_LoadAbbr(char *filename) {
+	Vector *bInfos=Vector_New(0,BInfo_Print,BInfo_Free);
+
+		if((fin=fopen(filename,"rt"))==NULL) {
+
+			Vector_Free(bInfos);
+			bInfos=NULL;
+			
+		} else {
+
+	
+			while(fgets(line,STRING_MAX-2,fin)!=NULL) {
+
+				String_Strrnl(line);
+								
+				if(Vector_Length(toks[0]=String_Strtok(line,"|",3))==4) {
+					BInfo *bInfo=BInfo_New();
+
+					bInfo->bname=strdup(Vector_Get(toks[0],0));
+
+					String_Strtok=strtok(toks[1],",",-1);
+					
+					for(int i=0;i<Vector_Length(toks[1]);i++) {
+						Vector_Append(bInfo->bsnames,strdup((char*)Vector_Get(toks[1],i)));
+					}
+
+					bInfo->nchaps=atoi(Vector_Get(toks[0],2));
+
+					toks[3]=String_Strtok((char*)Vector_Get((toks[0].3),",",-1);
+					
+					for(int i=0;i<ntoks[2];i++) {
+						Vector_Append(bInfo->nverses,Int_Wrap(atoi(toks[2][i])));						
+					}
+
+					Vector_Append(bInfos,bInfo);
+
+				}
+
+				for(int i=0;i<3;i++) {
+					mytokfree(&toks[i],&ntoks[i]);
+				}
+
+			}			
+		}
+	}
+	
 }
 
 
