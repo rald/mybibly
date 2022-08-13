@@ -79,16 +79,6 @@ int main(int argc,char **argv) {
 
   Lexer_Lex(
 
-"1 Song of Solomon 2-3\n"
-"1 John 2\n"
-"1 John 2-3\n"
-"1 John 2:3\n"
-"1 John 3:3-4\n"
-"1 John 3:3-4,5\n"
-"1 John 3:3-4,5,6\n"
-"1 John 3:3-4,5-6\n"
-"1 John 3:3-4,5-6,7\n"
-"1 John 3:3-4,5,6-7\n"
 "1 John 3:3-4,5:6-7"
 
 ,&tokens,&ntokens);

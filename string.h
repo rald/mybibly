@@ -36,7 +36,6 @@ static void arrapp(char ***a,size_t *na,char *s) {
 
 
 
-
 char *String_Append(char **s,char *fmt,...) {
   va_list args;
 
