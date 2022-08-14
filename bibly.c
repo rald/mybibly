@@ -20,7 +20,11 @@
 #define PARSER_IMPLEMENTATION
 #include "parser.h"
 
+#define BINFO_IMPLEMENTATION
+#include "binfo.h"
 
+#define BALT_IMPLEMENTATION
+#include "balt.h"
 
 int main(int argc,char **argv) {
 
@@ -41,6 +45,7 @@ int main(int argc,char **argv) {
 
   Cite **cites;
   size_t ncites=0;  
+
 
 
 	if(argc<2) {
@@ -79,23 +84,13 @@ int main(int argc,char **argv) {
 
   Lexer_Lex(
 
-"1 John 3:3-4,5:6-7"
+"1 John 2:3-4,5,6,5:6-7,8,9,10;John 3:16"
 
 ,&tokens,&ntokens);
 
 
-
-
-  Tokens_Print(tokens,ntokens);
-
   Parser_Parse(tokens,ntokens,&cites,&ncites);  
-  for(size_t i=0;i<ntokens;i++) {
-    Token_Free(tokens[i]);
-    tokens[i]=NULL;
-  }
   
-
-
 	return 0;
 }
 

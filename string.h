@@ -18,14 +18,20 @@ char *String_Strrnl(char *s);
 
 bool String_Match(char str[], char pattern[], int n, int m);
 
-
+int String_ToInteger(const char *s);
 
 
 #ifdef STRING_IMPLEMENTATION
 
-
-
 static void arrapp(char ***a,size_t *na,char *s);
+
+
+
+int String_ToInteger(const char *s) {
+  int r=0;
+  sscanf(s,"%d",&r);
+  return r;
+}
 
 
 

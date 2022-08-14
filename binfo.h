@@ -1,5 +1,6 @@
-#ifndef BINFO_H
-#define BINFO_H
+#ifndef binfo_H
+#define binfo_H
+
 
 
 #include "common.h"
@@ -10,88 +11,101 @@
 #define STRING_IMPLEMENTATION
 #include "string.h"
 
+#define INT_IMPLEMENTATION
+#include "int.h"
+
+#define BALT_IMPLEMENTATION
+#include "balt.h"
+
 
 typedef struct BInfo BInfo;
 
 struct BInfo {
 	char *bname;
-	Vector *bsnames;
-	int nchaps;
-	Vector *nverses;
+	size_t *nverses;
+	size_t nchaps;
 };
 
 
 
-BInfo *BInfo_New();
-void BInfo_Free(void *bInfo);
+BInfo *binfo_New();
+void BInfo_Free(void *binfo);
 void BInfo_Print(int num,void *data);
-Vector *BInfo_LoadVPL(char *filename);
-Vector *BInfo_LoadInfo(char *filename);
-
-void Int_Print(int num,void *data);
-void Int_Free(void *data);
-
-int *Int_Wrap(int data);
-int Int_Unwrap(int *data);
 
 
+void BInfo_Append(BInfo ***binfos,size_t *nbinfos,BInfo *binfo);
 
+size_t BInfo_LoadVPL(char *filename,BInfo ***binfos,size_t *nbinfos);
 
+size_t BInfo_LoadInfo(char *filename,BInfo ***binfos,size_t *nbinfos);
 
-#ifdef BINFO_IMPLEMENTATION
+size_t BInfo_LoadAlt(char *filename,BAlt ***balts,size_t *nbalts);
 
 
 
 
+#ifdef BInfo_IMPLEMENTATION
 
 
-BInfo *BInfo_New() {
-	BInfo *bInfo=malloc(sizeof(*bInfo));
-	if(bInfo) {
-		bInfo->bname=NULL;
-		bInfo->bsnames=Vector_New(0,String_Print,String_Free);
-		bInfo->nchaps=0;
-		bInfo->nverses=Vector_New(0,Int_Print,Int_Free);				
+
+
+
+
+BInfo *binfo_New() {
+	BInfo *binfo=malloc(sizeof(*binfo));
+	if(binfo) {
+		binfo->bname=NULL;
+		binfo->nverses=NULL;				
+		binfo->nnverses=0;
 	}
-	return bInfo;	
+	return binfo;	
 }
 
 
 
-void BInfo_Free(void *bInfo) {
+void BInfo_Free(void *binfo) {
 
-	free(((BInfo*)bInfo)->bname);
-	((BInfo*)bInfo)->bname=NULL;
+	free(((binfo*)binfo)->bname);
+	((binfo*)binfo)->bname=NULL;
+	
+	free(((binfo*)binfo)->nverses);
+	((binfo*)binfo)->nverses=NULL;
 
-	Vector_Free(((BInfo*)bInfo)->bsnames);
-	((BInfo*)bInfo)->bsnames=NULL;
+	((binfo*)binfo)->nchaps=0;
 	
-	((BInfo*)bInfo)->nchaps=0;		
-	
-	Vector_Free(((BInfo*)bInfo)->nverses);
-	((BInfo*)bInfo)->nverses=NULL;
-	
-	free(bInfo);
+	free(binfo);
 }
 
 
 
-void BInfo_Print(int num,void *data) {
-	printf("%s|",((BInfo*)data)->bname);	
-	Vector_Print(0,((BInfo*)data)->bsnames);
-//	printf("|%d|",((BInfo*)data)->nchaps);	
-//	Vector_Print(0,((BInfo*)data)->nverses);
+
+void BInfo_Append(binfo ***binfos,size_t *nbinfos,BInfo *binfo) {
+  (*binfos)=realloc(*binfos,sizeof(*binfos)*((*nbinfos)+1));
+  (*binfos)[(*nbinfos)++]=binfo;
+}
+
+
+
+void BInfo_Print(BInfo *binfo) {
+	printf("%s|",binfo->bname);
+	printf("%zu|",binfo->nchaps);
+  for(size_t i=0;i<binfo->nchaps;i++) {
+    if(i!=0) printf(",");
+  	printf("%zu",binfo->nverses[i]);
+  }
 	printf("\n");
 }
 
 
 
-Vector *BInfo_LoadVPL(char *filename) {
+size_t BInfo_LoadVPL(char *filename,BInfo ***binfos,size_t *nbinfos) {
 
-	Vector *bInfos=Vector_New(0,BInfo_Print,BInfo_Free);
 	FILE *fin=NULL;
-	char line[STRING_MAX];
 
+	char *line=NULL;
+	size_t llen=0;
+	ssize_t rlen=0;
+		
 	char **toks=NULL;
 	int ntoks=-0;
 
@@ -104,197 +118,170 @@ Vector *BInfo_LoadVPL(char *filename) {
 	int pvnum=0;
 
 
-	if(bInfos) {
+  if((fin=fopen(filename,"rt"))) {
 
-		if((fin=fopen(filename,"rt"))==NULL) {
+  	BInfo *binfo=binfo_New();
 
-			Vector_Free(bInfos);
-			bInfos=NULL;
-			
-		} else {
+  	while((rlen=getline(&line,&llen,fin))>0) {
 
-			BInfo *bInfo=BInfo_New();
+  		String_Strrnl(line);
+  						
+  		if(String_Strtok(line,"|",3,&toks,&ntoks)==4) {
 
-	
-			while(fgets(line,STRING_MAX-2,fin)!=NULL) {
+  			bname=toks[0];
+  			cnum=atoi(toks[1]);
+  			vnum=atoi(toks[2]);
 
-				mystrrnl(line);
-								
-				if(mystrtok(line,"|",3,&toks,&ntoks)==4) {
+  			if(cnum!=1 && cnum!=pcnum) {
+  				Int_Append(binfo->nverses,binfo->nchaps,Int_Wrap(pvnum));
+  			}
 
-					bname=toks[0];
-					cnum=atoi(toks[1]);
-					vnum=atoi(toks[2]);
+  			if(pbname!=NULL && strcmp(bname,pbname)!=0) {
+  			
+  				if(cnum==1) {
+  					Int_Append(binfo->nverses,binfo->nchaps,Int_Wrap(pvnum));
+  				}
 
-					//printf("%s %d:%d -> %s\n\n",bname,cnum,vnum,text);
+  				binfo->bname=strdup(pbname);
+  				
+  				binfo_Append(binfos,binfo);
 
-					if(cnum!=1 && cnum!=pcnum) {
-						Vector_Append(bInfo->nverses,Int_Wrap(pvnum));
-						bInfo->nchaps=pcnum;
-					}
+  				binfo=binfo_New();
+  										
+  			}
 
+  			pbname=strdup(bname);
+  			pcnum=cnum;
+  			pvnum=vnum;
 
+  		}
+  			
+  		Strings_Free(&toks,&ntoks);
 
-					if(pbname!=NULL && strcmp(bname,pbname)!=0) {
-					
-						if(cnum==1) {
-							Vector_Append(bInfo->nverses,Int_Wrap(pvnum));
-							bInfo->nchaps=pcnum;
-						}
+      free(line);
+      line=NULL;
+      llen=0;
+      rrlen=0;
+  	}	
 
-						bInfo->bname=strdup(pbname);
-						
-						Vector_Append(bInfos,bInfo);
+  	Int_Append(binfo->nverses,binfo->nchaps,Int_Wrap(pvnum));
 
-						bInfo=BInfo_New();
-												
-					}
+  	binfo->nchaps=pcnum;
 
-					pbname=strdup(bname);
-					pcnum=cnum;
-					pvnum=vnum;
+  	binfo->bname=strdup(pbname);
+  		
+  	BInfo_Append(binfos,nbinfos,binfo);
+  									
+  }	
 
-				}
-					
-				mytokfree(&toks,&ntoks);
-
-			}	
-
-			Vector_Append(bInfo->nverses,Int_Wrap(pvnum));
-
-			bInfo->nchaps=pcnum;
-
-			bInfo->bname=strdup(pbname);
-				
-			Vector_Append(bInfos,bInfo);
-											
-		}	
-	}
-	
-	return bInfos;
+	return *nbinfos;
 }
 
 
 
-Vector *BInfo_LoadInfo(char *filename) {
+size_t BInfo_LoadInfo(char *filename,BInfos ***binfos,size_t *nbinfos) {
 
-	Vector *bInfos=Vector_New(0,BInfo_Print,BInfo_Free);
 	FILE *fin=NULL;
-	char line[STRING_MAX];
 
-	Vector *toks[3]=NULL;
+	char *line;
+	size_t llen=0;
+	ssize_t rlen=0;
+		
+
+	char **toks[3];
+	size_t ntoks[3];
 
 
 	for(int i=0;i<3;i++) {
-		toks[i]=Vector_New(0,String_Print,String_Free);
+		toks[i]=NULL;
 		ntoks[i]=0;
 	}
 	
 
-	if(bInfos) {
-
-		if((fin=fopen(filename,"rt"))==NULL) {
-
-			Vector_Free(bInfos);
-			bInfos=NULL;
-			
-		} else {
-
+		if((fin=fopen(filename,"rt"))) {
 	
-			while(fgets(line,STRING_MAX-2,fin)!=NULL) {
-
+			while((rlen=getline(&line,&llen,fin))>0) {
 				String_Strrnl(line);
 								
 				if(String_Strtok(line,"|",3,toks)==4) {
-					BInfo *bInfo=BInfo_New();
+					BInfo *binfo=BInfo_New();
 
-					bInfo->bname=strdup(toks[0][0]);
-
-					mystrtok(toks[0][1],",",-1,&toks[1],&ntoks[1]);
+					binfo->bname=strdup(toks[0][0]);
 					
-					for(int i=0;i<ntoks[1];i++) {
-						Vector_Append(bInfo->bsnames,strdup(toks[1][i]));
-					}
+					binfo->nchaps=atoi(toks[0][2]);
 
-					bInfo->nchaps=atoi(toks[0][2]);
-
-					mystrtok(toks[0][3],",",-1,&toks[2],&ntoks[2]);
+					String_Strtok(toks[0][3],",",-1,&toks[2],&ntoks[2]);
 					
 					for(int i=0;i<ntoks[2];i++) {
-						Vector_Append(bInfo->nverses,Int_Wrap(atoi(toks[2][i])));						
+						Int_Append(binfo->nverses,Int_Wrap(atoi(toks[2][i])));						
 					}
 
-					Vector_Append(bInfos,bInfo);
+					BInfo_Append(binfos,nbinfos,binfo);
 
 				}
 
 				for(int i=0;i<3;i++) {
-					mytokfree(&toks[i],&ntoks[i]);
+					String_Free(&toks[i],&ntoks[i]);
 				}
+
+        free(line);
+        line=NULL;
+        llen=0;
+        rrlen=0;
 
 			}			
 		}
 	}
 
-	return bInfos;
+	return *nbinfos;
 
 }
 
 
 
-Vector binfo_LoadAbbr(char *filename) {
-	Vector *bInfos=Vector_New(0,BInfo_Print,BInfo_Free);
+size_t BInfo_LoadAlt(char *filename,BAlt ***balts,size_t *nbalts) {
 
-		if((fin=fopen(filename,"rt"))==NULL) {
+  char *line=NULL;
+  size_t llen=0;
+  ssize_t lrlen=0;
 
-			Vector_Free(bInfos);
-			bInfos=NULL;
-			
-		} else {
 
-	
-			while(fgets(line,STRING_MAX-2,fin)!=NULL) {
+  if((fin=fopen(filename,"rt"))) {
 
-				String_Strrnl(line);
-								
-				if(Vector_Length(toks[0]=String_Strtok(line,"|",3))==4) {
-					BInfo *bInfo=BInfo_New();
+  	while((rlen=getline(&line,&llen,fin)>0) {
 
-					bInfo->bname=strdup(Vector_Get(toks[0],0));
+  		String_Strrnl(line);
 
-					String_Strtok=strtok(toks[1],",",-1);
-					
-					for(int i=0;i<Vector_Length(toks[1]);i++) {
-						Vector_Append(bInfo->bsnames,strdup((char*)Vector_Get(toks[1],i)));
-					}
+  		BAlt *balt=Balt_New(NULL,NULL,0);
+  						
+  		if(String_Strtok(line,"|",-1,&balt->alts,&balt->nalts))>0) {
 
-					bInfo->nchaps=atoi(Vector_Get(toks[0],2));
+  			balt->bname=strdup(toks[0]);
 
-					toks[3]=String_Strtok((char*)Vector_Get((toks[0].3),",",-1);
-					
-					for(int i=0;i<ntoks[2];i++) {
-						Vector_Append(bInfo->nverses,Int_Wrap(atoi(toks[2][i])));						
-					}
+  			BAlt_Append(balts,nbalts,balt);
 
-					Vector_Append(bInfos,bInfo);
+  		}
 
-				}
+  		for(int i=0;i<3;i++) {
+  			String_Free(&toks[i],&ntoks[i]);
+  		}
 
-				for(int i=0;i<3;i++) {
-					mytokfree(&toks[i],&ntoks[i]);
-				}
+      free(line);
+      line=NULL;
+      llen=0;
+      rrlen=0;
 
-			}			
-		}
-	}
-	
+  	}			
+  }
+
+  return *nbinfos;
 }
 
 
 
 
-#endif /* BINFO_IMPLEMENTATION */
+#endif /* binfo_IMPLEMENTATION */
 
 
-#endif /* BINFO_H */
+#endif /* binfo_H */
 

@@ -10,7 +10,6 @@
 #include <time.h>
 
 
-
 #define DEBUG 0
 
 #define STRING_MAX 1024
