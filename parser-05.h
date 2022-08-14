@@ -214,39 +214,37 @@ static char *Parser_GetString() {
 }
 
 
-static void Parser_Initialize() {
-  bnum=0;
-  bcnum=0;
-  ecnum=0;
-  bvnum=0;
-  evnum=0;
-
-  crange=NULL;
-  vranges=NULL;
-  nvranges=0;  
-
-  cite=NULL;
-}
-
 
 static void Parser_ParseVers(Cite ***cites,size_t *ncites) {
+  printf("<vers>\n");  
+  
   if(Parser_MatchRel(1,TOKENTYPE_DASH)) {
     bvnum=(size_t)Parser_GetInteger();
     Parser_MatchExpect(TOKENTYPE_DASH);
     Parser_Next();
     evnum=(size_t)Parser_GetInteger();
+
     vrange=Range_New(bvnum,evnum);
     Range_Append(&vranges,&nvranges,vrange);
+    printf("vers: %zu to %zu\n",bvnum,evnum);
   } else {
     bvnum=(size_t)Parser_GetInteger();
+
     vrange=Range_New(bvnum,bvnum);
     Range_Append(&vranges,&nvranges,vrange);
+    printf("vers: %zu\n",bvnum);
   }
 
   if(Parser_Match(TOKENTYPE_COMMA)) {
+
     cite=Cite_New(bnum,bname,crange,vranges,nvranges);
     Cite_Append(cites,ncites,cite);
-    Parser_Initialize();
+
+    crange=NULL;
+
+    vranges=NULL;
+    nvranges=0;
+    
     Parser_Next();
     if(Parser_MatchRel(1,TOKENTYPE_COLON)) {      
       Parser_ParseChapter(cites,ncites);
@@ -254,52 +252,77 @@ static void Parser_ParseVers(Cite ***cites,size_t *ncites) {
       Parser_ParseVers(cites,ncites);
     }
   }
+
+  printf("</vers>\n");  
 }
 
 
 
 static void Parser_ParseChapter(Cite ***cites,size_t *ncites) {
+  printf("<chapter>\n");
   if(Parser_MatchRel(1,TOKENTYPE_COLON)) {    bcnum=(size_t)Parser_GetInteger();
+    printf("chap: %zu\n",bcnum);
     Parser_Next();
     Parser_ParseVers(cites,ncites);
   } else if(Parser_MatchRel(1,TOKENTYPE_DASH)) {
     bcnum=(size_t)Parser_GetInteger();
     Parser_Next();
     ecnum=(size_t)Parser_GetInteger();
+    printf("chapter: %zu to %zu\n",bcnum,ecnum);
+
     crange=Range_New(bcnum,ecnum);
     cite=Cite_New(bnum,bname,crange,vranges,nvranges);
     Cite_Append(cites,ncites,cite);
-    Parser_Initialize();
+
+    crange=NULL;
+    vranges=NULL;
+    nvranges=0;
+
   } else {
     bcnum=(size_t)Parser_GetInteger();
+    printf("chap: %zu\n",bcnum);
+
     crange=Range_New(bcnum,bcnum);
     cite=Cite_New(bnum,bname,crange,vranges,nvranges);
     Cite_Append(cites,ncites,cite);
-    Parser_Initialize();
+
+    crange=NULL;
+    vranges=NULL;
+    nvranges=0;
   }
+  printf("</chapter>\n");
 }
 
 
 
 static void Parser_ParseBook(Cite ***cites,size_t *ncites) {
+  printf("<book>\n");
+
   if(Parser_Match(TOKENTYPE_INTEGER)) {  
     bnum=(size_t)Parser_GetInteger();
   }
   Parser_MatchExpect(TOKENTYPE_STRING);
   bname=Parser_GetString();
+  printf("book: %zu %s\n",bnum,bname); 
 
   Parser_ParseChapter(cites,ncites); 
 
+
+  Token_Print(Parser_Look());
+
+
   if(Parser_Match(TOKENTYPE_SEMICOLON)) {     cite=Cite_New(bnum,bname,crange,vranges,nvranges);
     Cite_Append(cites,ncites,cite);
-    Parser_Initialize();
+
+    crange=NULL;
+    vranges=NULL;
+    nvranges=0;
+    
     Parser_Next();
     Parser_ParseBook(cites,ncites); 
-  } else {
-    cite=Cite_New(bnum,bname,crange,vranges,nvranges);
-    Cite_Append(cites,ncites,cite);
-    Parser_Initialize();
   }
+
+  printf("</book>\n");
 }
 
 
@@ -319,6 +342,7 @@ void Parser_Parse(Token **toks,size_t ntoks,Cite ***cites,size_t *ncites) {
   Tokens_Print(toks,ntoks);
 
   Parser_ParseStart(cites,ncites);
+
 
   Cites_Print(*cites,*ncites);
 }

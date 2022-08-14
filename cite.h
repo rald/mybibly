@@ -16,14 +16,14 @@ typedef struct Cite Cite;
 struct Cite {
   size_t bnum;
 	char *bname;
-	Range *rchap;
-	Range **rverses;
-	size_t nrverses;
+	Range *crange;
+	Range **vranges;
+	size_t nvranges;
 };
 
 
 
-Cite *Cite_New(size_t bnum,char *bname,Range *rchap,Range **rverses,size_t nrverses);
+Cite *Cite_New(size_t bnum,char *bname,Range *crange,Range **vranges,size_t nvranges);
 
 void Cite_Free(void *cite);
 
@@ -40,14 +40,14 @@ void Cites_Print(Cite **cites,size_t ncites);
 
 
 
-Cite *Cite_New(size_t bnum,char *bname,Range *rchap,Range **rverses,size_t nrverses) {
+Cite *Cite_New(size_t bnum,char *bname,Range *crange,Range **vranges,size_t nvranges) {
 	Cite *cite=NEW1(cite);
 	if(cite) {
 	  cite->bnum=bnum;
 		cite->bname=bname?strdup(bname):NULL;
-		cite->rchap=rchap;
-		cite->rverses=rverses;
-		cite->nrverses=nrverses;
+		cite->crange=crange;
+		cite->vranges=vranges;
+		cite->nvranges=nvranges;
 	}
 	return cite;
 }
@@ -58,12 +58,12 @@ void Cite_Free(void *cite) {
 	free(((Cite*)cite)->bname);
 	((Cite*)cite)->bname=NULL;
 
-	Range_Free(((Cite*)cite)->rchap);
-	((Cite*)cite)->rchap=NULL;
+	Range_Free(((Cite*)cite)->crange);
+	((Cite*)cite)->crange=NULL;
 
   Ranges_Free(
-    &((Cite*)cite)->rverses,
-    &((Cite*)cite)->nrverses
+    &((Cite*)cite)->vranges,
+    &((Cite*)cite)->nvranges
   );
 	
 	free(cite);
@@ -91,24 +91,25 @@ void Cite_Append(Cite ***cites,size_t *ncites,Cite *cite) {
 
 
 void Cite_Print(Cite *cite) {
+
   if(cite) {
-    if(cite->bnum) 
+
+    if(cite->bnum) {
       printf("book: %zu %s\n",cite->bnum,cite->bname);
-    else 
+    } else {
       printf("book: %s\n",cite->bname);
-    if(cite->rchap) {
-      printf("bchap: %zu\n",cite->rchap->begin);
-      printf("echap: %zu\n",cite->rchap->end);
     }
-    if(cite->rverses) {
-      printf("nrverses: %zu\n",cite->nrverses);
-      for(size_t i=0;i<cite->nrverses;i++) {
-        if(cite->rverses[i]) {
-          printf("%zu -> begin: %zu end: %zu\n",i+1,cite->rverses[i]->begin,cite->rverses[i]->end);
-        }
-      }   
+    
+    if(cite->crange) {
+      if(cite->crange->begin==cite->crange->end) {
+        printf("chap: %zu\n",cite->crange->begin);
+      } else {
+        printf("chap: %zu to %zu\n",cite->crange->begin,cite->crange->end);
+      }
     }
-    printf("\n"); 
+
+    Ranges_Print(cite->vranges,cite->nvranges);
+    
   } else {
     printf("(null)\n");
   }
@@ -118,7 +119,7 @@ void Cite_Print(Cite *cite) {
 
 void Cites_Print(Cite **cites,size_t ncites) {
   if(cites) {
-    printf("ncites: %zu\n\n",ncites);
+    printf("ncites: %zu\n",ncites);
     for(size_t i=0;i<ncites;i++) {
       Cite_Print(cites[i]);
     }
@@ -131,16 +132,16 @@ void Cites_Print(Cite **cites,size_t ncites) {
 
 
 void Cite_Parse(Cite *cite) {
-  if(cite->rchap->begin<cite->rchap->end) {
-    for(size_t i=cite->rchap->begin;i<=cite->rchap->end;i++) {
+  if(cite->crange->begin<cite->crange->end) {
+    for(size_t i=cite->crange->begin;i<=cite->crange->end;i++) {
             
     }
-  } else if(cite->rchap->begin==cite->rchap->end) {
-    if(cite->nrverses>0) {
-      for(size_t j=0;j<=cite->nrverses;j++) {
-        for(  size_t i=cite->rverses[j]->begin;
-              i<=cite->rverses[j]->end;i++) {
-          if(cite->bnum!=0) printf("%zu %s %zu:%zu",cite->bnum,cite->bname,cite->rchap->begin,i);
+  } else if(cite->crange->begin==cite->crange->end) {
+    if(cite->nvranges>0) {
+      for(size_t j=0;j<=cite->nvranges;j++) {
+        for(  size_t i=cite->vranges[j]->begin;
+              i<=cite->vranges[j]->end;i++) {
+          if(cite->bnum!=0) printf("%zu %s %zu:%zu",cite->bnum,cite->bname,cite->crange->begin,i);
         }
       }
     }

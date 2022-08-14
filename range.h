@@ -76,10 +76,10 @@ void Range_Print(Range *range) {
 
 
 void Ranges_Print(Range **ranges,size_t nranges) {
+  printf("nranges: %zu\n",nranges);
   for(size_t i=0;i<nranges;i++) {
     Range_Print(ranges[i]);
   }
-  printf("\n");
 }
 
 #endif /* RANGE_IMPLEMENTATION */

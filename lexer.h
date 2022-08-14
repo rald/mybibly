@@ -24,40 +24,56 @@ typedef enum LexerState {
 
 
 
-size_t Lexer_Lex(char *cites,Token ***tokens,size_t *ntokens);
+size_t Lexer_Lex(char *line,Token ***tokens,size_t *ntokens);
 
 
 
 
 #ifdef LEXER_IMPLEMENTATION
 
-static char *cite=NULL;
+static char *cites=NULL;
 
 static size_t ln=0,cl=0;
 static size_t sln=0,scl=0;
 
-static size_t i=0;
+static size_t lpc=0;
+
 
 
 static void Lexer_Error(int code,char *fmt,...);
+
 static void Lexer_Next();
+static void Lexer_Prev();
+
+
+
+static void Lexer_Error(int code,char *fmt,...) {
+
+  va_list args;
+
+  va_start(args,fmt);
+    vprintf(fmt,args);
+  va_end(args);
+
+  exit(code);
+}
 
 
 
 static void Lexer_Next() {
-  i++; cl++;
+  lpc++; cl++;
 }
 
 
 
 static void Lexer_Prev() {
-  i--; 
+  lpc--; 
   cl--;
-  if(cite[i]=='\n') {
-    int j=i-1;
+  if(cites[lpc]=='\n') {
+    int j=lpc-1;
     ln--;
     cl=0;
-    while(j>=0 && cite[j]!='\n') { 
+    while(j>=0 && cites[j]!='\n') { 
       cl++; 
       j--; 
     }
@@ -66,7 +82,7 @@ static void Lexer_Prev() {
 
 
 
-size_t Lexer_Lex(char *cites,Token ***tokens,size_t *ntokens) {
+size_t Lexer_Lex(char *line,Token ***tokens,size_t *ntokens) {
 
   bool quit=false;
 
@@ -74,11 +90,11 @@ size_t Lexer_Lex(char *cites,Token ***tokens,size_t *ntokens) {
 
 	char *text=NULL;
 
-	cite=cites;
+	cites=line;
 	
   while(!quit) {
 
-		char c=cite[i];
+		char c=cites[lpc];
 
 		char s[2]={c,'\0'};
 
@@ -91,13 +107,13 @@ size_t Lexer_Lex(char *cites,Token ***tokens,size_t *ntokens) {
 				} else if(isdigit(c)) {
 				  sln=ln;
 				  scl=cl;
-					i--;
+					lpc--;
           cl--;
 					state=LEXERSTATE_INTEGER;
 				} else if(isalpha(c)) {
 				  sln=ln;
 				  scl=cl;
-					i--;
+					lpc--;
 					cl--;
 					state=LEXERSTATE_STRING;
 				} else if(String_IndexOfChar(":-,;",c)!=-1) {
@@ -114,7 +130,7 @@ size_t Lexer_Lex(char *cites,Token ***tokens,size_t *ntokens) {
           ln++;
           cl=0;
 			  } else if(isspace(c)) {
-				  while(isspace(cite[i])) {
+				  while(isspace(cites[lpc])) {
 				    Lexer_Next();
 				  }
 				  Lexer_Prev();
@@ -162,19 +178,6 @@ size_t Lexer_Lex(char *cites,Token ***tokens,size_t *ntokens) {
 	Token_Append(tokens,ntokens,Token_New(TOKENTYPE_EOF,NULL,ln,cl));	
 
 	return *ntokens;
-}
-
-
-
-static void Lexer_Error(int code,char *fmt,...) {
-
-  va_list args;
-
-  va_start(args,fmt);
-    vprintf(fmt,args);
-  va_end(args);
-
-  exit(code);
 }
 
 

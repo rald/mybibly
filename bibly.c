@@ -84,10 +84,9 @@ int main(int argc,char **argv) {
 
   Lexer_Lex(
 
-"1 John 2:3-4,5,6,5:6-7,8,9,10;John 3:16"
+"1 John 2:3-4"
 
 ,&tokens,&ntokens);
-
 
   Parser_Parse(tokens,ntokens,&cites,&ncites);  
   
