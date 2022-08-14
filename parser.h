@@ -295,16 +295,18 @@ static void Parser_ParseChapter(Cite ***cites,size_t *ncites) {
 
 
 static void Parser_ParseBook(Cite ***cites,size_t *ncites) {
+
   if(Parser_Match(TOKENTYPE_INTEGER)) {  
     bnum=(size_t)Parser_GetInteger();
   }
+
   Parser_MatchExpect(TOKENTYPE_STRING);
   bname=Parser_GetString();
 
-  String_Append(&book,"%zu %s",bnum,bname);
+  String_Copy(&book,"%zu %s",bnum,bname);
   
   for(size_t i=0;i<nbalts;i++) {
-    if(String_CaseIndexOf(book,balts->alts[i])) {
+    if(Strings_CaseIndexOf(balts->alts,balts->nalts,book)) {
       free(book);
       book=strdup(balts->alts[0]);      
     } 

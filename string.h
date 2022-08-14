@@ -18,6 +18,11 @@ char *String_Trim(char *s);
 
 char *String_Strrnl(char *s);
 
+ssize_t String_IndexOfChar(char *s,char c);
+
+ssize_t Strings_IndexOf(char **h,size_t nh ,char *n)
+ssize_t Strings_CaseIndexOf(char **h,size_t nh ,char *n);
+
 bool String_Match(char str[], char pattern[], int n, int m);
 
 int String_ToInteger(const char *s);
@@ -60,6 +65,37 @@ void Strings_Free(char ***ss,size_t *nss) {  for(size_t i=0;i<(*nss);i++) {
 static void arrapp(char ***a,size_t *na,char *s) {
   (*a)=realloc(*a,sizeof(**a)*((*na)+1));
   (*a)[(*na)++]=s?strdup(s):NULL;
+}
+
+
+
+char *String_Copy(char **s,char *fmt,...) {
+  va_list args;
+
+  char *b=NULL;
+  size_t nb=0;
+  size_t ns=0;
+
+  va_start(args,fmt);
+    nb=vsnprintf(NULL,0,fmt,args);
+  va_end(args);
+
+  b=calloc(nb+1,sizeof(*b));
+
+  va_start(args,fmt);
+    vsnprintf(b,nb+1,fmt,args);
+  va_end(args);
+
+  if(b) {
+    if(*s) {
+      free(*s);
+    }
+    (*s)=strdup(b);
+    free(b);
+    b=NULL;
+  }  
+
+  return s;
 }
 
 
@@ -164,6 +200,30 @@ ssize_t String_IndexOfChar(char *s,char c) {
   }
   return j;
 }
+
+
+
+ssize_t Strings_IndexOf(char **h,size_t nh ,char *n) {
+  for(size_t i=0;i<nh;i++) {
+    if(strcmp(h[i])==0) {
+      return (ssize_t)i;
+    }
+  }
+  return -1;
+}
+
+
+
+
+ssize_t Strings_CaseIndexOf(char **h,size_t nh ,char *n) {
+  for(size_t i=0;i<nh;i++) {
+    if(strcasecmp(h[i])==0) {
+      return (ssize_t)i;
+    }
+  }
+  return -1;
+}
+
 
 
 
