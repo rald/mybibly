@@ -14,7 +14,6 @@
 typedef struct Cite Cite;
 
 struct Cite {
-  size_t bnum;
 	char *bname;
 	Range *crange;
 	Range **vranges;
@@ -23,7 +22,7 @@ struct Cite {
 
 
 
-Cite *Cite_New(size_t bnum,char *bname,Range *crange,Range **vranges,size_t nvranges);
+Cite *Cite_New(char *bname,Range *crange,Range **vranges,size_t nvranges);
 
 void Cite_Free(void *cite);
 
@@ -40,10 +39,9 @@ void Cites_Print(Cite **cites,size_t ncites);
 
 
 
-Cite *Cite_New(size_t bnum,char *bname,Range *crange,Range **vranges,size_t nvranges) {
+Cite *Cite_New(char *bname,Range *crange,Range **vranges,size_t nvranges) {
 	Cite *cite=NEW1(cite);
 	if(cite) {
-	  cite->bnum=bnum;
 		cite->bname=bname?strdup(bname):NULL;
 		cite->crange=crange;
 		cite->vranges=vranges;
@@ -94,12 +92,8 @@ void Cite_Print(Cite *cite) {
 
   if(cite) {
 
-    if(cite->bnum) {
-      printf("book: %zu %s\n",cite->bnum,cite->bname);
-    } else {
-      printf("book: %s\n",cite->bname);
-    }
-    
+    printf("book: %s\n",cite->bname);
+     
     if(cite->crange) {
       if(cite->crange->begin==cite->crange->end) {
         printf("chap: %zu\n",cite->crange->begin);

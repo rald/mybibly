@@ -17,6 +17,12 @@
 #define CITE_IMPLEMENTATION
 #include "cite.h"
 
+#define BINFO_IMPLEMENTATION
+#include "binfo.h"
+
+#define BALT_IMPLEMENTATION
+#include "balt.h"
+
 
 
 typedef enum ParserState {
@@ -77,10 +83,10 @@ static Token **tokens=NULL;
 static size_t ntokens=0;
 static ssize_t pc=0;
 
-
-
 static size_t bnum=0;
 static char *bname=NULL;
+static char *book=NULL;
+
 static size_t bcnum=0;
 static size_t ecnum=0;
 static size_t bvnum=0;
@@ -92,6 +98,9 @@ static Range **vranges=NULL;
 static size_t nvranges=0;
 
 static Cite *cite=NULL;
+
+BAlt **balts=NULL;
+size_t nbalts=0;
 
 
 
@@ -215,6 +224,10 @@ static char *Parser_GetString() {
 
 
 static void Parser_Initialize() {
+
+  bname=NULL;
+  book=NULL;
+  
   bnum=0;
   bcnum=0;
   ecnum=0;
@@ -244,7 +257,7 @@ static void Parser_ParseVers(Cite ***cites,size_t *ncites) {
   }
 
   if(Parser_Match(TOKENTYPE_COMMA)) {
-    cite=Cite_New(bnum,bname,crange,vranges,nvranges);
+    cite=Cite_New(book,crange,vranges,nvranges);
     Cite_Append(cites,ncites,cite);
     Parser_Initialize();
     Parser_Next();
@@ -288,15 +301,24 @@ static void Parser_ParseBook(Cite ***cites,size_t *ncites) {
   Parser_MatchExpect(TOKENTYPE_STRING);
   bname=Parser_GetString();
 
+  String_Append(&book,"%zu %s",bnum,bname);
+  
+  for(size_t i=0;i<nbalts;i++) {
+    if(String_CaseIndexOf(book,balts->alts[i])) {
+      free(book);
+      book=strdup(balts->alts[0]);      
+    } 
+  }
+
   Parser_ParseChapter(cites,ncites); 
 
-  if(Parser_Match(TOKENTYPE_SEMICOLON)) {     cite=Cite_New(bnum,bname,crange,vranges,nvranges);
+  if(Parser_Match(TOKENTYPE_SEMICOLON)) {     cite=Cite_New(book,crange,vranges,nvranges);
     Cite_Append(cites,ncites,cite);
     Parser_Initialize();
     Parser_Next();
     Parser_ParseBook(cites,ncites); 
   } else {
-    cite=Cite_New(bnum,bname,crange,vranges,nvranges);
+    cite=Cite_New(book,crange,vranges,nvranges);
     Cite_Append(cites,ncites,cite);
     Parser_Initialize();
   }
@@ -318,9 +340,11 @@ void Parser_Parse(Token **toks,size_t ntoks,Cite ***cites,size_t *ncites) {
 
   Tokens_Print(toks,ntoks);
 
+  BInfo_LoadAlt("kjv.alt",&balts,&nbalts);
   Parser_ParseStart(cites,ncites);
 
-  Cites_Print(*cites,*ncites);
+  BAlts_Print(balts,nbalts);
+
 }
 
 

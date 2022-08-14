@@ -6,7 +6,9 @@
 #define COMMON_IMPLEMENTATION
 #include "common.h"
 
-
+void String_Free(void *data);
+void Strings_Free(char ***ss,size_t *nss);
+char *String_Append(char **s,char *fmt,...);
 
 char *String_Skip(char *s,char *d);
 
@@ -21,7 +23,10 @@ bool String_Match(char str[], char pattern[], int n, int m);
 int String_ToInteger(const char *s);
 
 
+
 #ifdef STRING_IMPLEMENTATION
+
+
 
 static void arrapp(char ***a,size_t *na,char *s);
 
@@ -31,6 +36,23 @@ int String_ToInteger(const char *s) {
   int r=0;
   sscanf(s,"%d",&r);
   return r;
+}
+
+
+
+void String_Free(void *data) {
+  free(data);
+}
+
+
+
+void Strings_Free(char ***ss,size_t *nss) {  for(size_t i=0;i<(*nss);i++) {
+    String_Free((*ss)[i]);
+    (*ss)[i]=NULL;
+  }
+  free(*ss);
+  (*ss)=NULL;
+  (*nss)=0;
 }
 
 
@@ -76,8 +98,6 @@ char *String_Append(char **s,char *fmt,...) {
 
 
 
-
-
 char *String_Skip(char *s,char *d) {
 	char *pb=NULL;
 	char *ps=NULL;
@@ -89,10 +109,6 @@ char *String_Skip(char *s,char *d) {
 	}
 	return ps;
 }
-
-
-
-
 
 
 
@@ -212,6 +228,5 @@ bool String_Match(char str[], char pattern[], int n, int m)
 
 
 #endif /* STRING_H */
-
 
 
