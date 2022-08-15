@@ -21,17 +21,22 @@ struct Passage {
 
 Passage *Passage_New(char *book,int cnum,int vnum,char *text);
 
-void Passage_Free(void *passage);
+void Passage_Free(Passage **passage);
+
+void Passages_Free(Passage ***passages,size_t *npassages);
 
 void Passage_Append(Passage ***passages,size_t *npassages,Passage *passage);
 
-void Passage_Print(int num,void *passage);
+void Passage_Print(Passage *passage);
+
+void Passages_Print(Passage **passages,size_t npassages);
 
 Passage *Passage_SearchVerse(Passage **passages,size_t npassages,char *bname,size_t cnum,size_t vnum);
 
 Passage *Passage_SearchRandom(Passage **passages,size_t npassages);
 
 int Passage_SearchText(Passage **passages,size_t npassages,Passage ***fpassages,size_t *nfpassages,char *pattern);
+
 
 
 
@@ -52,10 +57,31 @@ Passage *Passage_New(char *book,int cnum,int vnum,char *text) {
 
 
 
-void Passage_Free(void *passage) {
-	free(((Passage*)passage)->bname);
-	free(((Passage*)passage)->text);
-	free(passage);
+void Passage_Free(Passage **passage) {
+  if(passage && *passage) {
+  	free((*passage)->bname);
+  	(*passage)->bname=NULL;
+  	free((*passage)->text);
+  	(*passage)->text=NULL;
+  	free(*passage);
+  	(*passage)=NULL;
+	}
+}
+
+
+
+void Passages_Free(Passage ***passages,size_t *npassages) {
+
+  if(passages && *passages) {
+
+    for(size_t i=0;i<(*npassages);i++) {
+      Passage_Free(&(*passages)[i]);
+    }
+    free(passages);
+    passages=NULL;
+    npassages=0;
+
+  }
 }
 
 
@@ -67,30 +93,26 @@ void Passage_Append(Passage ***passages,size_t *npassages,Passage *passage) {
 
 
 
-void Passage_Print(int num,void *passage) {
+void Passage_Print(Passage *passage) {
+  if(passage) {
+    printf("%s %zu:%zu -> %s\n\n",
+    	passage->bname,
+    	passage->cnum,
+    	passage->vnum,
+    	passage->text
+    );			
+  } else {
+    printf("(null)\n\n");
+  }
+}
 
-	Passage *p=(Passage*)passage;
 
-	if(num==0) {
 
-		printf("%s %zu:%zu -> %s\n\n",
-			p->bname,
-			p->cnum,
-			p->vnum,
-			p->text
-		);	
-
-	} else {
-	
-		printf("(%d) %s %zu:%zu -> %s\n\n",
-			num,
-			p->bname,
-			p->cnum,
-			p->vnum,
-			p->text
-		);	
-		
-	}
+void Passages_Print(Passage **passages,size_t npassages) {
+  printf("npassages: %zu\n",npassages);
+  for(size_t i=0;i<npassages;i++) {
+    Passage_Print(passages[i]);
+  }
 }
 
 

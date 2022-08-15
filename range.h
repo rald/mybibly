@@ -14,7 +14,9 @@ struct Range {
 
 Range *Range_New(int begin,int end);
 
-void Range_Free(void *range);
+void Range_Free(Range **range);
+
+void Ranges_Free(Range ***ranges,size_t *nranges);
 
 void Ranges_Free(Range ***ranges,size_t *nranges);
 
@@ -44,22 +46,26 @@ Range *Range_New(int begin,int end) {
 
 
 
-void Range_Free(void *range) {
-	free(range);
+void Range_Free(Range **range) {
+  if(range && *range) {
+    (*range)->begin=0;
+  	(*range)->end=0;
+  	free(*range);
+  	(*range)=NULL;
+	}
 }
 
 
 
 void Ranges_Free(Range ***ranges,size_t *nranges) {
-  for(size_t i=0;i<(*nranges);i++) {
-    Range_Free((*ranges)[i]);
-    (*ranges)[i]=NULL;
-  }  
-
-  free(*ranges);
-  (*ranges)=NULL;
-
-  (*nranges)=0;
+  if(ranges && *ranges) {
+    for(size_t i=0;i<(*nranges);i++) {
+      Range_Free(&(*ranges)[i]);
+    }  
+    free(*ranges);
+    (*ranges)=NULL;
+    (*nranges)=0;
+  }
 }
 
 
@@ -71,16 +77,30 @@ void Range_Append(Range ***ranges,size_t *nranges,Range *range) {
 
 
 void Range_Print(Range *range) {
-  printf("RANGE: { begin: %zu end: %zu }\n",range->begin,range->end);
+  if(range) {
+    printf("RANGE: { begin: %zu end: %zu }",range->begin,range->end);
+  } else {
+    printf("RANGE: (null)");
+  }
 }
 
 
 void Ranges_Print(Range **ranges,size_t nranges) {
-  printf("nranges: %zu\n",nranges);
-  for(size_t i=0;i<nranges;i++) {
-    Range_Print(ranges[i]);
+  bool f=true;
+  if(ranges) {
+    printf("RANGES: { ");
+    printf("nranges: %zu, ",nranges);
+    for(size_t i=0;i<nranges;i++) {
+      if(f) f=false; else printf(", ");
+      Range_Print(ranges[i]);
+    }
+    printf(" }\n");
+  } else {
+    printf("RANGES: (null)");
   }
 }
+
+
 
 #endif /* RANGE_IMPLEMENTATION */
 

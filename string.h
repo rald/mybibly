@@ -20,7 +20,7 @@ char *String_Strrnl(char *s);
 
 ssize_t String_IndexOfChar(char *s,char c);
 
-ssize_t Strings_IndexOf(char **h,size_t nh ,char *n)
+ssize_t Strings_IndexOf(char **h,size_t nh ,char *n);
 ssize_t Strings_CaseIndexOf(char **h,size_t nh ,char *n);
 
 bool String_Match(char str[], char pattern[], int n, int m);
@@ -89,13 +89,14 @@ char *String_Copy(char **s,char *fmt,...) {
   if(b) {
     if(*s) {
       free(*s);
+      (*s)=NULL;
     }
     (*s)=strdup(b);
     free(b);
     b=NULL;
   }  
 
-  return s;
+  return *s;
 }
 
 
@@ -205,7 +206,7 @@ ssize_t String_IndexOfChar(char *s,char c) {
 
 ssize_t Strings_IndexOf(char **h,size_t nh ,char *n) {
   for(size_t i=0;i<nh;i++) {
-    if(strcmp(h[i])==0) {
+    if(strcmp(n,h[i])==0) {
       return (ssize_t)i;
     }
   }
@@ -217,7 +218,7 @@ ssize_t Strings_IndexOf(char **h,size_t nh ,char *n) {
 
 ssize_t Strings_CaseIndexOf(char **h,size_t nh ,char *n) {
   for(size_t i=0;i<nh;i++) {
-    if(strcasecmp(h[i])==0) {
+    if(strcasecmp(n,h[i])==0) {
       return (ssize_t)i;
     }
   }

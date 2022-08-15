@@ -239,46 +239,8 @@ size_t BInfo_LoadInfo(char *filename,BInfo ***binfos,size_t *nbinfos) {
 
 
 
-size_t BInfo_LoadAlt(char *filename,BAlt ***balts,size_t *nbalts) {
-
-  FILE  *fin=NULL;
-
-  char *line=NULL;
-  size_t llen=0;
-  ssize_t rlen=0;
-
-
-  if((fin=fopen(filename,"rt"))) {
-
-  	while((rlen=getline(&line,&llen,fin)>0)) {
-
-  		String_Strrnl(line);
-
-  		BAlt *balt=BAlt_New(NULL,NULL,0);
-  						
-  		if(String_Strtok(line,"|",-1,&balt->alts,&balt->nalts)>0) {
-
-  			balt->bname=strdup(balt->alts[0]);
-
-  			BAlt_Append(balts,nbalts,balt);
-
-  		}
-
-      free(line);
-      line=NULL;
-      llen=0;
-      rlen=0;
-
-  	}			
-  }
-
-  return *nbalts;
-}
-
-
-
-
 #endif /* BINFO_IMPLEMENTATION */
+
 
 
 #endif /* BINFO_H */

@@ -31,7 +31,7 @@ size_t Lexer_Lex(char *line,Token ***tokens,size_t *ntokens);
 
 #ifdef LEXER_IMPLEMENTATION
 
-static char *cites=NULL;
+static char *lcites=NULL;
 
 static size_t ln=0,cl=0;
 static size_t sln=0,scl=0;
@@ -69,11 +69,11 @@ static void Lexer_Next() {
 static void Lexer_Prev() {
   lpc--; 
   cl--;
-  if(cites[lpc]=='\n') {
+  if(lcites[lpc]=='\n') {
     int j=lpc-1;
     ln--;
     cl=0;
-    while(j>=0 && cites[j]!='\n') { 
+    while(j>=0 && lcites[j]!='\n') { 
       cl++; 
       j--; 
     }
@@ -90,11 +90,11 @@ size_t Lexer_Lex(char *line,Token ***tokens,size_t *ntokens) {
 
 	char *text=NULL;
 
-	cites=line;
+	lcites=line;
 	
   while(!quit) {
 
-		char c=cites[lpc];
+		char c=lcites[lpc];
 
 		char s[2]={c,'\0'};
 
@@ -130,7 +130,7 @@ size_t Lexer_Lex(char *line,Token ***tokens,size_t *ntokens) {
           ln++;
           cl=0;
 			  } else if(isspace(c)) {
-				  while(isspace(cites[lpc])) {
+				  while(isspace(lcites[lpc])) {
 				    Lexer_Next();
 				  }
 				  Lexer_Prev();

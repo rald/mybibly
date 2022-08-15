@@ -24,9 +24,9 @@ struct Cite {
 
 Cite *Cite_New(char *bname,Range *crange,Range **vranges,size_t nvranges);
 
-void Cite_Free(void *cite);
+void Cite_Free(Cite **cite);
 
-void Cites_Free(Cite **cites,size_t *ncites);
+void Cites_Free(Cite ***cites,size_t *ncites);
 
 void Cite_Append(Cite ***cites,size_t *ncites,Cite *cite);
 
@@ -52,30 +52,43 @@ Cite *Cite_New(char *bname,Range *crange,Range **vranges,size_t nvranges) {
 
 
 
-void Cite_Free(void *cite) {
-	free(((Cite*)cite)->bname);
-	((Cite*)cite)->bname=NULL;
+void Cite_Free(Cite **cite) {
 
-	Range_Free(((Cite*)cite)->crange);
-	((Cite*)cite)->crange=NULL;
+  if(cite && *cite) {
+  	if((*cite)->bname) {
+      free((*cite)->bname);
+      (*cite)->bname=NULL;
+  	}
 
-  Ranges_Free(
-    &((Cite*)cite)->vranges,
-    &((Cite*)cite)->nvranges
-  );
-	
-	free(cite);
+  	Range_Free(&(*cite)->crange);
+
+    Ranges_Free(
+      &(*cite)->vranges,
+      &(*cite)->nvranges
+    );
+  	
+  	free(cite);
+  	cite=NULL;
+
+	}
+
 }
 
 
 
-void Cites_Free(Cite **cites,size_t *ncites) {
-  for(size_t i=0;i<(*ncites);i++) {
-    Cite_Free(cites[i]);
-    cites[i]=NULL;    
+void Cites_Free(Cite ***cites,size_t *ncites) {
+
+  if(cites && *cites) {
+
+    for(size_t i=0;i<(*ncites);i++) {
+      Cite_Free(&(*cites)[i]);
+      (*cites)[i]=NULL;    
+    }
+
+    free(*cites);
+    (*cites)=NULL;  
+
   }
-  free(cites);
-  cites=NULL;  
 }
 
 
@@ -92,20 +105,26 @@ void Cite_Print(Cite *cite) {
 
   if(cite) {
 
-    printf("book: %s\n",cite->bname);
+    printf("CITE: { ");
+
+    printf(" book: %s, ",cite->bname);
      
     if(cite->crange) {
       if(cite->crange->begin==cite->crange->end) {
-        printf("chap: %zu\n",cite->crange->begin);
+        printf("chap: %zu, ",cite->crange->begin);
       } else {
-        printf("chap: %zu to %zu\n",cite->crange->begin,cite->crange->end);
+        printf("chap: %zu to %zu, ",cite->crange->begin,cite->crange->end);
       }
     }
 
-    Ranges_Print(cite->vranges,cite->nvranges);
+    if(cite->vranges) {
+      Ranges_Print(cite->vranges,cite->nvranges);
+    }
+
+    printf(" }\n");
     
   } else {
-    printf("(null)\n");
+    printf("CITE: (null)\n");
   }
 }
 
@@ -113,36 +132,44 @@ void Cite_Print(Cite *cite) {
 
 void Cites_Print(Cite **cites,size_t ncites) {
   if(cites) {
-    printf("ncites: %zu\n",ncites);
+    printf("CITES: { ");
+    printf("ncites: %zu, ",ncites);
     for(size_t i=0;i<ncites;i++) {
+      if(i!=0) printf(", ");
       Cite_Print(cites[i]);
     }
-    printf("\n");
+    printf(" }\n");
   } else {
-    printf("(null)\n");
+    printf("CITES: (null)\n");
   }
 }
 
 
 
-void Cite_Parse(Cite *cite) {
-  if(cite->crange->begin<cite->crange->end) {
-    for(size_t i=cite->crange->begin;i<=cite->crange->end;i++) {
-            
-    }
-  } else if(cite->crange->begin==cite->crange->end) {
-    if(cite->nvranges>0) {
-      for(size_t j=0;j<=cite->nvranges;j++) {
-        for(  size_t i=cite->vranges[j]->begin;
-              i<=cite->vranges[j]->end;i++) {
-          if(cite->bnum!=0) printf("%zu %s %zu:%zu",cite->bnum,cite->bname,cite->crange->begin,i);
+void Cites_ToPassages(Cite **cites,size_t ncites,Passage **passages,size_t npassages,Passage ***fpassages,size_t *nfpassages) {
+  if(cites && passages) {
+    for(size_t k=0;k<npassages;k++) {
+      for(size_t j=0;j<ncites;j++) {
+        if(
+          (cites[j] && passages[k] && cites[j]->bname && passages[k]->bname &&
+          !strcasecmp(cites[j]->bname,passages[k]->bname)) &&
+          (cites[j]->crange && 
+          passages[k]->cnum>=cites[j]->crange->begin && 
+          passages[k]->cnum<=cites[j]->crange->end)) {
+          for(size_t i=0;i<cites[j]->nvranges;i++) {
+            if(
+              cites[j]->vranges[i] && 
+              passages[k]->vnum>=cites[j]->vranges[i]->begin && 
+              passages[k]->vnum<=cites[j]->vranges[i]->end
+            ) {
+              Passage_Append(fpassages,nfpassages,passages[k]);
+            }
+          }
         }
       }
     }
   }
 }
-
-
 
 
 

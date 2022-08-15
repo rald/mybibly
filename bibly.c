@@ -26,11 +26,15 @@
 #define BALT_IMPLEMENTATION
 #include "balt.h"
 
+
+
 int main(int argc,char **argv) {
 
-	FILE *fp;
+	FILE *fin=NULL;
 
-	char line[STRING_MAX];
+	char *line=NULL;
+	size_t llen=0;
+	ssize_t rlen=0;
 
 	Token **tokens=NULL;
 	size_t ntokens=0;
@@ -39,6 +43,9 @@ int main(int argc,char **argv) {
 	size_t npassages=0;
 	
 	Passage *passage=NULL;
+
+	Passage **fpassages=NULL;
+	size_t nfpassages=0;
 
   char **toks=NULL;
   size_t ntoks=0;
@@ -54,17 +61,16 @@ int main(int argc,char **argv) {
 	}
 
 
-
+	
 	srand(time(NULL));
 
-	fp=fopen(argv[1],"rt");
+	fin=fopen(argv[1],"rt");
 
-	while(fgets(line,STRING_MAX-2,fp)) {
+  while((rlen=getline(&line,&llen,fin))>0) {
 
-		char *p=strchr(line,'\n');
-		if(p) *p='\0';
+    String_Strrnl(line);
 			
-		if(String_Strtok(line,"|",3,&toks,&ntoks)==4) {
+    if(String_Strtok(line,"|",3,&toks,&ntoks)==4) {
 			passage=Passage_New(
 				toks[0],
 				atoi(toks[1]),
@@ -73,22 +79,39 @@ int main(int argc,char **argv) {
 			);
 
 			Passage_Append(&passages,&npassages,passage);
-
-			Token_Free(toks);
+	
+			Strings_Free(&toks,&ntoks);
 			toks=NULL;
-		}
+			ntoks=0;
+			
+    }
+
+    free(line);
+    line=NULL;
+    llen=0;
+    rlen=0;
 
 	}
 
 
 
-  Lexer_Lex(
-
-"1 John 2:3-4"
-
+Lexer_Lex(
+"Jn 3:16,20,22,24-27"
 ,&tokens,&ntokens);
 
+
+
   Parser_Parse(tokens,ntokens,&cites,&ncites);  
+
+  Cites_Print(cites,ncites);
+
+  Cites_ToPassages(cites,ncites,passages,npassages,&fpassages,&nfpassages);
+
+  Passages_Print(fpassages,nfpassages);
+
+  Passages_Free(&fpassages,&nfpassages);
+  Passages_Free(&passages,&npassages);
+
   
 	return 0;
 }
